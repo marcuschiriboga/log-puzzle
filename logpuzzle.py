@@ -13,6 +13,10 @@ Here's what a puzzle URL looks like (spread out onto multiple lines):
 HTTP/1.0" 302 528 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US;
 rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"
 """
+__author__ = """marcus w/ help from
+ https://github.com/bjshively/logpuzzle/blob/master/logpuzzle.py 
+ and joe 
+ """
 
 import os
 import re
@@ -26,8 +30,25 @@ def read_urls(filename):
     extracting the hostname from the filename itself, sorting
     alphabetically in increasing order, and screening out duplicates.
     """
-    # +++your code here+++
-    pass
+    path = "http://" + filename.split("_")[1]
+    f = open(filename, 'r')
+    urls = re.findall(r'GET (\S*puzzle\S*) HTTP', f.read())
+    urls = set(urls)
+    urls = sorted(urls)
+
+    i = 0
+    while i < len(urls):
+        urls[i] = path + urls[i]
+        i += 1
+    # Custom sort helper
+
+    def url_sort_key(img_file):
+        img_sort = img_file.split('-')[-1]
+        return img_sort
+    img_name = urls[0].split('/')[-1]
+    if(len(img_name.split("-")) == 3):
+        return sorted(urls, key=url_sort_key)
+    return urls
 
 
 def download_images(img_urls, dest_dir):
@@ -38,8 +59,33 @@ def download_images(img_urls, dest_dir):
     to show each local image file.
     Creates the directory if necessary.
     """
-    # +++your code here+++
-    pass
+    # Check to see if the directory exists. If not, create it.
+    if not (os.path.exists(dest_dir)):
+        os.mkdir(dest_dir)
+
+    index = open(os.path.join(dest_dir, 'index.html'), 'w+')
+    index.write('<html>\n<body>\n')
+
+    # Download the images into the destination dir
+    for i in range(len(img_urls)):
+        # build image name string
+        img_name = "img" + str(i)
+
+        # build image path string
+        img_link = os.path.join(dest_dir, img_name)
+
+        # Print a status for each img
+        print("Retrieving " + img_name + "...")
+
+        # Download each image to the destination dir
+        urllib.urlretrieve(img_urls[i], img_link)
+
+        # Add the image to the index.html file
+        index.write('<img src="' + img_name + '">')
+
+    # Wrap up the index file
+    index.write("\n</body>\n</html>")
+    index.close()
 
 
 def create_parser():
@@ -72,3 +118,4 @@ def main(args):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+git add .
